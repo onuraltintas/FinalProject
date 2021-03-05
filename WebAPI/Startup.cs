@@ -1,12 +1,12 @@
-using Bussiness.Abstract;
-using Bussiness.Concrete;
-using DataAccess.Abstract;
-using DataAccess.Concrete.EntityFramework;
+using Core.Utilities.Security.Encryption;
+using Core.Utilities.Security.Jwt;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace WebAPI
 {
@@ -22,14 +22,26 @@ namespace WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //Autofac, Ninject, CastleWindsor, StructurMap, LightInject, DryInject --> IoC Container
+           
             services.AddControllers();
-            //services.AddSingleton<IProductService,ProductManager>();
-            //services.AddSingleton<ICategoryService,CategoryManager>();
-            //services.AddSingleton<IProductDal, EfProductDal>();
-            //services.AddSingleton<ICategoryDal, EfCategoryDal>();
+         
 
+            var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters=new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidIssuer = tokenOptions.Issuer,
+                        ValidAudience = tokenOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

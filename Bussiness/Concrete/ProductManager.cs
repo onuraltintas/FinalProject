@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Business.Constants;
 using Bussiness.Abstract;
-using Bussiness.Constants;
 using Bussiness.ValidationRules.FluentValidation;
 using Core.Aspects.AutoFac.Validation;
 using Core.Utilities.Business;
@@ -29,6 +29,7 @@ namespace Bussiness.Concrete
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
         }
 
+        
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
