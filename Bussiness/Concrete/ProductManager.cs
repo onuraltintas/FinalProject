@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Bussiness.Abstract;
 using Bussiness.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
 using Core.Aspects.AutoFac.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
@@ -24,13 +27,16 @@ namespace Bussiness.Concrete
             _categoryService = categoryService;
         }
 
+        [CacheAspect]
+        [PerformanceAspect(5)]
         public IDataResult<Product> GetById(int productId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
         }
 
-        
+        [SecuredOperation("product.add,admin")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
            IResult result= BusinessRules.Run(CheckIfProductCountOfCorrect(product.CategoryId),
@@ -47,6 +53,7 @@ namespace Bussiness.Concrete
         }
         
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             _productDal.Update(product);
@@ -59,6 +66,7 @@ namespace Bussiness.Concrete
             return new Result(true,"Ürün Silindi...");
         }
 
+        [CacheAspect]
         public IDataResult<List<Product>> GetAll()
         {
            // iş kodları
